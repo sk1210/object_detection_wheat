@@ -5,10 +5,16 @@ import torchvision.models.detection.mask_rcnn
 import utils
 #
 import wandb
-wandb.login(key="023826569615e93d37baaf41412957bd7b837c6c")
-wandb.init(project="log_wheat_detect")
 
-def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq):
+config = {
+    "model": "resnext101_32x8d",
+    "batch_size" : 4
+}
+wandb.login(key="023826569615e93d37baaf41412957bd7b837c6c")
+wandb.init(project="log_wheat_detect", config=config)
+
+
+def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, **args):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
@@ -56,10 +62,12 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq):
             for key in metric_logger.meters.keys():
                 wandb_log[key] = metric_logger.meters[key].value
             wandb_log["epoch"] = epoch
+            wandb_log["image_scale"] = args["image_scale"]
             wandb.log(wandb_log)
-        iter +=1
+        iter += 1
         # print(wandb_log)
-        #return metric_logger
+        # return metric_logger
+
 
 def _get_iou_types(model):
     model_without_ddp = model
